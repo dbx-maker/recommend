@@ -1,0 +1,29 @@
+name: Auto Unzip
+
+on:
+  push:
+    paths:
+      - '**.zip'   # 当有 zip 文件推送时触发
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip all ZIP files
+        run: |
+          for file in $(find . -name "*.zip"); do
+            echo "Unzipping $file..."
+            unzip -o "$file" -d "${file%.*}"  # 解压到同名文件夹
+          done
+
+      - name: Commit unzipped files
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Auto unzip files" || echo "No changes to commit"
+          git push
